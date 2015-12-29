@@ -60,7 +60,9 @@ echo 'export    TARGET_PREFIX=$PREFIX/$TARGET' >> /tmp/env.sh
 
 echo 'export    PATH=$PATH:$PREFIX/bin' >> /tmp/env.sh
 
-source /tmp/env.sh
+
+echo $PATH | grep $PREFIX
+[ $? -gt 0 ] && source /tmp/env.sh
 
 
 #01.prepare resources and check dependency.
@@ -234,7 +236,7 @@ function compile_c_lib()
 
     cd $PRJROOT/build_dir/build_glibc
     CC=arm-linux-gcc AR=arm-linux-ar RANLIB=arm-linux-ranlib
-    sh ../../src_dir/${rc_glibc%%.tar.gz}/configure --prefix=$PREFIX \
+    sh ../../src_dir/${rc_glibc%%.tar.gz}/configure --prefix=$PREFIX/$TARGET \
                                                     --host=arm-linux \
                                                     --enable-add-ons \
                                                     --with-headers=$PREFIX/$TARGET/include \
@@ -248,11 +250,6 @@ function compile_c_lib()
     make install
 
     [ $? -gt 0 ] && echo -e "\033[32mCompiled glibc successfully.\033[0m"
-
-
-#   注：以上完成后，请查看一下$TARGET_PREFIX/lib目录下的文件libc.so，看看GROUP的内容是否指定到可以用于交叉编译的库，如果不是请修改，如下。
-#   libc.so 文件(所在目录是$TARGET_PREFIX/lib)，将GROUP ( /lib/libc.so.6 /lib/libc_nonshared.a)改为GROUP ( libc.so.6 libc_nonshared.a)
-#这样连接程序 ld 就会在 libc.so 所在的目录查找它需要的库，因为你的机子的/lib目录可能已经装了一个相同名字的库，一个为编译可以在你的宿主机上运行的程序的库，而不是用于交叉编译的。
 }
 
 
@@ -280,13 +277,17 @@ function compile_gcc_with_c_lib()
 }
 
 
-##08.check toolchains config.
-#function postcheck()
-#{
-#
-#}
-#
-#
+#08.check toolchains config.
+function postcheck()
+{
+    echo ""
+    echo "Checking the env and files after all configs:"
+    
+    ls $PREFIX/bin/
+
+    which arm-linux-gcc > /dev/null 2>&1
+    [ $? -eq 0 ] && echo "" && echo -e "\033[32mCompiled gcc with c lib support can work successfully.\033[0m"
+}
 
 
 #09.test HelloWorld program.
@@ -303,7 +304,8 @@ function test_hello_world()
 
     cd $PRJROOT/program
     arm-linux-gcc -static -I $PREFIX/include -o helloworld helloworld.c
-    arm-linux-size helloworld && echo "" && [ $? -eq 0 ] && echo "Congratulations, your cross_compile has worked now." || { echo ""; echo "Notice: there are some errors."; }
+    echo "" && echo 'arm-linux-size helloworld'
+    arm-linux-size helloworld && echo "" && [ $? -eq 0 ] && echo -e "\033[32mCongratulations, your cross_compile has worked now.\033[0m" || { echo ""; echo "Notice: there are some errors."; }
 }
 
 
@@ -360,6 +362,8 @@ END
 #compile_c_lib && sleep 2
 
 #compile_gcc_with_c_lib
+
+postcheck
 
 test_hello_world
 
