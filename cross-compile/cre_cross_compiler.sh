@@ -79,7 +79,6 @@ function precheck()
     done
 
     echo -e "\033[32mDependency packages have been installed already.\033[0m"
-    echo ""
 }
 
 
@@ -104,7 +103,8 @@ function init_env()
     mkdir $PRJROOT/doc > /dev/null 2>&1
     mkdir $PRJROOT/program > /dev/null 2>&1
     
-    
+
+    echo ""    
     echo "Checking the files' existence:" 
     for i in $rc_binutils $rc_gcc $rc_glibc $rc_glibc_ports $rc_gmp $rc_mpfr
     do
@@ -181,7 +181,7 @@ function compile_gcc_without_c_lib()
     sh ../../src_dir/${rc_gcc%%.tar.gz}/configure --prefix=$PREFIX \
                                                   --target=$TARGET \
                                                   --without-headers \
-                                                  --enable-languages=c \
+                                                  --enable-languages=c,c++ \
                                                   --disable-shared \
                                                   --disable-threads \
                                                   --disable-decimal-float \
@@ -196,7 +196,7 @@ function compile_gcc_without_c_lib()
 
     str_temp=${rc_gcc%%.tar.gz}
     cd $PREFIX/lib/gcc/arm-linux/${str_temp#gcc-}
-    ln -s libgcc.a libgcc_eh.a
+    ln -s libgcc.a libgcc_eh.a > /dev/null 2>&1
  
     [ $? -gt 0 ] && echo -e "\033[32mCompiled gcc without c lib support successfully.\033[0m"
 }
@@ -268,10 +268,13 @@ function compile_gcc_with_c_lib()
     sh ../../src_dir/${rc_gcc%%.tar.gz}/configure --prefix=$PREFIX \
                                                   --target=$TARGET \
                                                   --enable-shared \
-                                                  --enable-languages=c
+                                                  --enable-languages=c,c++
 
-    make all
-    make install
+    make all-gcc
+    make install-gcc
+
+    make all-target-libgcc
+    make install-target-libgcc
  
     [ $? -gt 0 ] && echo -e "\033[32mCompiled gcc with c lib support successfully.\033[0m"
 }
@@ -284,12 +287,24 @@ function compile_gcc_with_c_lib()
 #}
 #
 #
-##09.test HelloWorld program.
-#function test_hello_world()
-#{
-#
-#
-#}
+
+
+#09.test HelloWorld program.
+function test_hello_world()
+{
+    echo '#include <stdio.h>' > $PRJROOT/program/helloworld.c
+    echo '' >> $PRJROOT/program/helloworld.c
+    echo 'int main(int argc, char * argv[])' >> $PRJROOT/program/helloworld.c
+    echo '{' >> $PRJROOT/program/helloworld.c
+    echo '    printf("If you can see this message, Congratulations, your cross_compile has worked on arm-linux platform./n");' >> $PRJROOT/program/helloworld.c
+    echo '' >> $PRJROOT/program/helloworld.c    
+    echo '    return 0;' >> $PRJROOT/program/helloworld.c
+    echo '}' >> $PRJROOT/program/helloworld.c
+
+    cd $PRJROOT/program
+    arm-linux-gcc -static -I $PREFIX/include -o helloworld helloworld.c
+    arm-linux-size helloworld && echo "" && [ $? -eq 0 ] && echo "Congratulations, your cross_compile has worked now." || { echo ""; echo "Notice: there are some errors."; }
+}
 
 
 #10.report the config.
@@ -333,19 +348,20 @@ END
 
 
 #precheck && sleep 2
-
+#
 #init_env && sleep 2
-
+#
 #compile_binutils && sleep 2
-
+#
 #compile_gcc_without_c_lib && sleep 2
 
 #generate_kernel_headers && sleep 2
 
 #compile_c_lib && sleep 2
 
-compile_gcc_with_c_lib
+#compile_gcc_with_c_lib
 
+test_hello_world
 
 report_config
 
