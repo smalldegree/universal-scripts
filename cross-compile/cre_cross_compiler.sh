@@ -349,23 +349,23 @@ END
 }
 
 
-#precheck && sleep 2
-#
-#init_env && sleep 2
-#
-#compile_binutils && sleep 2
-#
-#compile_gcc_without_c_lib && sleep 2
+precheck && sleep 2
 
-#generate_kernel_headers && sleep 2
+init_env && sleep 2
 
-#compile_c_lib && sleep 2
+compile_binutils && sleep 2
 
-#compile_gcc_with_c_lib
+compile_gcc_without_c_lib && sleep 2
 
-postcheck
+generate_kernel_headers && sleep 2
 
-test_hello_world
+compile_c_lib && sleep 2
+
+compile_gcc_with_c_lib && sleep 2
+
+postcheck && sleep 2
+
+test_hello_world && sleep 2
 
 report_config
 
