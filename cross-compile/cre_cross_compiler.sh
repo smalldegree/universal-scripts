@@ -211,6 +211,10 @@ function generate_kernel_headers()
     echo "Generating kernel headers: "
 
     cd $PRJROOT/kernel/${rc_linux_kernel%%.tar.gz}
+
+    grep 'HOSTLOADLIBES_mconf' scripts/kconfig/Makefile
+    [ $? -gt 0 ] && sed -i '202a HOSTLOADLIBES_mconf     = -ltinfo' scripts/kconfig/Makefile
+
     #make ARCH=arm CROSS_COMPILE=arm-linux- menuconfig    
     #you can use a common file ".config", so you needn't to config kernel.
     make ARCH=arm CROSS_COMPILE=arm-linux- 
