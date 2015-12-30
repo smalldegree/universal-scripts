@@ -115,10 +115,10 @@ function init_env()
             cp -an ./$i $PRJROOT/setup_dir/ && echo "    File ${i}: exists"
         elif [ -f /tmp/$i ]
         then
-            cp -an ./$i $PRJROOT/setup_dir/ && echo "    File ${i}: exists"
+            cp -an /tmp/$i $PRJROOT/setup_dir/ && echo "    File ${i}: exists"
         elif [ -f ~/$i ]
         then
-            cp -an ./$i $PRJROOT/setup_dir/ && echo "    File ${i}: exists"
+            cp -an ~/$i $PRJROOT/setup_dir/ && echo "    File ${i}: exists"
         else
             echo "    File ${i}: Not found in current dir or /tmp/ or ~/" && exit
         fi
@@ -129,10 +129,10 @@ function init_env()
         cp -an ./$rc_linux_kernel $PRJROOT/kernel/ && echo "    File ${rc_linux_kernel}: exists"
     elif [ -f /tmp/$rc_linux_kernel ]
     then
-        cp -an ./$rc_linux_kernel $PRJROOT/kernel/ && echo "    File ${rc_linux_kernel}: exists"
+        cp -an /tmp/$rc_linux_kernel $PRJROOT/kernel/ && echo "    File ${rc_linux_kernel}: exists"
     elif [ -f ~/$rc_linux_kernel ]
     then
-        cp -an ./$rc_linux_kernel $PRJROOT/kernel/ && echo "    File ${rc_linux_kernel}: exists"
+        cp -an ~/$rc_linux_kernel $PRJROOT/kernel/ && echo "    File ${rc_linux_kernel}: exists"
     else
         echo "    File ${rc_linux_kernel}: Not found in current dir or /tmp/ or ~/" && exit
     fi
