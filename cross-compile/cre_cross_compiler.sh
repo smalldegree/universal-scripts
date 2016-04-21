@@ -50,6 +50,14 @@ rc_mpfr=mpfr-2.4.0.tar.gz
 
 rc_linux_kernel=linux-2.6.32.27.tar.gz    
 
+#ftp://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.gz
+#ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.7/gcc-4.4.7.tar.gz
+#ftp://ftp.gnu.org/gnu/glibc/glibc-2.11.tar.gz
+#ftp://ftp.gnu.org/gnu/glibc/glibc-ports-2.11.tar.gz
+#ftp://ftp.gnu.org/gnu/gmp/gmp-4.2.tar.gz
+#ftp://ftp.gnu.org/gnu/mpfr/mpfr-2.4.0.tar.gz
+#ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.32.27.tar.gz
+
 
 echo 'export    TOP_DIR=/root/cross_compile' > /tmp/env.sh
 echo 'export    PRJROOT=$TOP_DIR/embeded_toolchains' >> /tmp/env.sh
