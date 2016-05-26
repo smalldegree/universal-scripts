@@ -69,7 +69,7 @@ echo 'export    TARGET_PREFIX=$PREFIX/$TARGET' >> /tmp/env.sh
 echo 'export    PATH=$PATH:$PREFIX/bin' >> /tmp/env.sh
 
 
-echo $PATH | grep $PREFIX
+echo $PATH | grep tool_chain 
 [ $? -gt 0 ] && source /tmp/env.sh
 
 
