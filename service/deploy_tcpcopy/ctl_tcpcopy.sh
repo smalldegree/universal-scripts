@@ -20,6 +20,16 @@
 #           2)Modified the way adding the route item instead of 'route add'
 #             by He Jianfei on 2016-07-12 09:47:00.
 #
+#           3)Added the description that the both servers online and
+#             assistant should<must> be on the same 2(3) layer switch or 
+#             you must add some routes on middle routers in order to make
+#             system works.
+#
+#           4)We strongly suggested that you should specify the value of 
+#             the parameter '-c' about tcpcopy with $ip_online, in other
+#             words, $ip_client=$ip_online, then you can copy any online
+#             server's flux.
+#
 #---------------------------------------------------------------------------
 
 
