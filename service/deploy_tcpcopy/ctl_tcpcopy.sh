@@ -32,6 +32,8 @@
 #
 #           5)Modified the interpreter way about the script.
 #
+#           6)Modified the tcpcopy's destination_port.
+#
 #---------------------------------------------------------------------------
 
 
@@ -123,7 +125,7 @@ function start_tcpcopy()
 {
     interface=$(/sbin/ip addr | sed -n "/$ip_online/p" | awk -F ' ' '{print $7}')
     
-    /usr/local/tcpcopy/sbin/tcpcopy -x ${source_port}-${ip_test}:${source_port} -s $ip_assistant -c $ip_client -i $interface -F "tcp and dst port $destination_port" -d -l /dev/null  
+    /usr/local/tcpcopy/sbin/tcpcopy -x ${source_port}-${ip_test}:${destination_port} -s $ip_assistant -c $ip_client -i $interface -F "tcp and dst port $destination_port" -d -l /dev/null  
 }
 
 
