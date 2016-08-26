@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 
 #---------------------------------------------------------------------------
 #
@@ -29,6 +29,8 @@
 #             the parameter '-c' about tcpcopy with $ip_online, in other
 #             words, $ip_client=$ip_online, then you can copy any online
 #             server's flux.
+#
+#           5)Modified the interpreter way about the script.
 #
 #---------------------------------------------------------------------------
 
