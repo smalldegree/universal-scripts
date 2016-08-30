@@ -36,20 +36,26 @@
 #
 #           7)Modified the tcpcopy's source_port on 2016-08-30 15:43:00.
 #
+#           8)Added the SSH batch install mode on 2016-08-30 16:26:00.
+#
 #---------------------------------------------------------------------------
 
 
-ip_online="192.168.4.187"
-ip_test="192.168.4.209"
-ip_assistant="192.168.4.210"
-ip_client="192.168.4.110"
+ip_online="192.168.144.182"
+ip_test="192.168.145.202"
+ip_assistant="192.168.144.184"
+ip_client="10.10.10.10"
 
 source_port="1935"
-destination_port="1935"
+destination_port="1937"
 
 src_libpcap="libpcap-1.7.4.tar.gz"
 src_tcpcopy="tcpcopy-1.0.0.tar.gz"
 src_intercept="intercept-1.0.0.tar.gz"
+
+ssh_user="root"
+sshd_port="22"
+config_script="ctl_tcpcopy.sh"
 
 
 function usage()
@@ -62,13 +68,16 @@ usage: ${0##*/} [t | i | r | si | st]
        r     --   add route on test server
        si    --   start intercept
        st    --   start tcpcopy
+       b     --   install intercept and tcpcopy in SSH batch mode
 
 01: eg. ${0##*/} t    --  install tcpcopy on online server.
 02: eg. ${0##*/} i    --  install intercept on assistant server.
 03: eg. ${0##*/} r    --  add route on test server.
 
-05: eg. ${0##*/} si   --  start intercept on assistant server.
-06: eg. ${0##*/} st   --  start tcpcopy on online server.
+04: eg. ${0##*/} si   --  start intercept on assistant server.
+05: eg. ${0##*/} st   --  start tcpcopy on online server.
+
+06. eg. ${0##*/} b    --  install intercept and tcpcopy in SSH batch mode.
 
 END
 }
@@ -162,6 +171,20 @@ then
     start_tcpcopy
 
     ps axu | grep 'tcpcopy' 2>&1 > /dev/null && netstat -atunp | grep 'tcpcopy' 2>&1 > /dev/null && echo -e "\033[32mservice tcpcopy has been startd successfully!\033[0m" 
+elif [ $1 = 'b' ]
+then
+    scp -P $sshd_port $config_script $src_libpcap $src_intercept ${ssh_user}@${ip_assistant}:/tmp/
+    ssh -p $sshd_port -l $ssh_user $ip_assistant "{ cd /tmp/ && sh ${config_script} i; } && { sh ${config_script} si; }" 
+    echo ""                                                                                                                                                                       
+
+    sleep 1
+    scp -P $sshd_port $config_script $src_libpcap $src_tcpcopy ${ssh_user}@${ip_online}:/tmp/
+    ssh -p $sshd_port -l $ssh_user $ip_online "{ cd /tmp/ && sh ${config_script} t; } && { sh ${config_script} st; }" 
+    echo ""
+
+    sleep 1
+    scp -P $sshd_port $config_script ${ssh_user}@${ip_test}:/tmp/
+    ssh -p $sshd_port -l $ssh_user $ip_test "{ cd /tmp/ && sh ${config_script} r; }" 
 else
     echo "Unknown parameter."
 fi
