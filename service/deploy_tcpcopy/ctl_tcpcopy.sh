@@ -38,6 +38,11 @@
 #
 #           8)Added the SSH batch install mode on 2016-08-30 16:26:00.
 #
+#           9)Added the del rule/route before add them on 2016-08-31 
+#             12:06:00.
+#
+#           10)Add the display config function on 2016-08-31 12:06:00.
+#
 #---------------------------------------------------------------------------
 
 
@@ -69,6 +74,7 @@ usage: ${0##*/} [t | i | r | si | st]
        si    --   start intercept
        st    --   start tcpcopy
        b     --   install intercept and tcpcopy in SSH batch mode
+       s     --   display config
 
 01: eg. ${0##*/} t    --  install tcpcopy on online server.
 02: eg. ${0##*/} i    --  install intercept on assistant server.
@@ -78,6 +84,8 @@ usage: ${0##*/} [t | i | r | si | st]
 05: eg. ${0##*/} st   --  start tcpcopy on online server.
 
 06. eg. ${0##*/} b    --  install intercept and tcpcopy in SSH batch mode.
+
+07. eg. ${0##*/} s    --  display config.
 
 END
 }
@@ -119,10 +127,15 @@ function add_route()
 {
     echo 1 > /proc/sys/net/ipv4/ip_forward
     #route add -host $ip_client gw $ip_assistant
-
+  
+    /sbin/ip rule del to $ip_client > /dev/null 2>&1
     /sbin/ip rule add to ${ip_client}/32 table 500
-    /sbin/ip r r default via $ip_assistant t 500
-    /sbin/ip r l t 500
+   
+    /sbin/ip route del default table 500 > /dev/null 2>&1
+    /sbin/ip route replace default via $ip_assistant table 500
+
+    /sbin/ip rule list | grep $ip_client
+    /sbin/ip route list table 500
 }
 
 function start_intercept()
@@ -137,6 +150,28 @@ function start_tcpcopy()
     interface=$(/sbin/ip addr | sed -n "/$ip_online/p" | awk -F ' ' '{print $7}')
     
     /usr/local/tcpcopy/sbin/tcpcopy -x ${source_port}-${ip_test}:${destination_port} -s $ip_assistant -c $ip_client -i $interface -F "tcp and dst port $source_port" -d -l /dev/null  
+}
+
+function display_config()
+{
+    echo -e "\033[32mCongratulations: tcpcopy environment has been deployed successfully, if you are sure of running ${0##*/} b\033[0m"
+    echo "configs as follow:"
+    echo "    01.ip_client   : ${ip_client}"
+    echo "    02.ip_online   : ${ip_online}:$source_port"
+    echo "    03.ip_test     : ${ip_test}:$destination_port"
+    echo ""
+    echo "    04.ip_assistant: ${ip_assistant}:36524, default"
+    echo ""
+    echo "    version info:"
+    echo "    libpcap:   $src_libpcap"
+    echo "    tcpcopy:   $src_tcpcopy"
+    echo "    intercept: $src_intercept"
+    echo ""
+    echo "    data flow:"
+    echo "    xxx.xxx.xxx.xxx:yyyy    -->    ${ip_online}:$source_port (ip_online)"
+    echo "    ${ip_client}:vvvv    -->    ${ip_test}:$destination_port  (tcpcopy's copy)"
+    echo "    ${ip_test}:$destination_port    -->    ${ip_client}:vvvv  (tcpcopy's forward, real server: $ip_assistant)"
+    echo ""
 }
 
 
@@ -158,16 +193,16 @@ then
     add_route
 
     #route -n | grep "$ip_client" 2>&1 > /dev/null && echo -e "\033[32mstatic route item has been added successfully!\033[0m"
-    /sbin/ip r l | grep "$ip_assistant" 2>&1 > /dev/null && echo -e "\033[32mstatic route item has been added successfully!\033[0m"                                                                                                                          
+    /sbin/ip route list table 500 | grep "$ip_assistant" 2>&1 > /dev/null && echo "" && echo -e "\033[32mstatic route item has been added successfully!\033[0m"                                                                                                                          
 elif [ $1 = 'si' ]
 then
-    [ -e /usr/local/intercept/sbin/intercept ] && killall -9 intercept 2>&1 > /dev/null
+    [ -e /usr/local/intercept/sbin/intercept ] && killall -9 intercept > /dev/null 2>&1
     start_intercept
 
     ps axu | grep 'intercept' 2>&1 > /dev/null && netstat -atunp | grep 'intercept' 2>&1 > /dev/null && echo -e "\033[32mservice intercept has been started successfully!\033[0m"
 elif [ $1 = 'st' ] 
 then                                                                                                                                            
-    [ -e /usr/local/tcpcopy/sbin/tcpcopy ] && killall -9 tcpcopy 2>&1 > /dev/null
+    [ -e /usr/local/tcpcopy/sbin/tcpcopy ] && killall -9 tcpcopy > /dev/null 2>&1
     start_tcpcopy
 
     ps axu | grep 'tcpcopy' 2>&1 > /dev/null && netstat -atunp | grep 'tcpcopy' 2>&1 > /dev/null && echo -e "\033[32mservice tcpcopy has been startd successfully!\033[0m" 
@@ -185,6 +220,12 @@ then
     sleep 1
     scp -P $sshd_port $config_script ${ssh_user}@${ip_test}:/tmp/
     ssh -p $sshd_port -l $ssh_user $ip_test "{ cd /tmp/ && sh ${config_script} r; }" 
+
+    echo ""
+    display_config
+elif [ $1 = 's' ]
+then
+    display_config
 else
     echo "Unknown parameter."
 fi
