@@ -43,13 +43,16 @@
 #
 #           10)Add the display config function on 2016-08-31 12:06:00.
 #
+#           11)Modified the parameter ip_client's default value on
+#             2016-09-14 12:08:00.
+#
 #---------------------------------------------------------------------------
 
 
 ip_online="192.168.144.182"
 ip_test="192.168.145.202"
 ip_assistant="192.168.144.184"
-ip_client="10.10.10.10"
+ip_client=$ip_online
 
 source_port="1935"
 destination_port="1937"
@@ -127,6 +130,7 @@ function add_route()
 {
     echo 1 > /proc/sys/net/ipv4/ip_forward
     #route add -host $ip_client gw $ip_assistant
+    #route del -host $ip_client gw $ip_assistant
   
     /sbin/ip rule del to $ip_client > /dev/null 2>&1
     /sbin/ip rule add to ${ip_client}/32 table 500
